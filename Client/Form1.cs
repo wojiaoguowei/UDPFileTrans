@@ -42,17 +42,16 @@ namespace Client
             String portStr = tbIP.Text.Trim();
             if (Util.checkIP(ip,portStr))
             {
-                
+                msg = new MsgCtrl(ip, Int32.Parse(portStr), 1);
+                msg.sendMsg("客户端连接", Util.SYSCONN);
                 try
                 {
-                    msg = new MsgCtrl(ip, Int32.Parse(portStr), 1);
-                    msg.sendMsg("客户端连接", Util.SYSCONN);
                     String[] temp=msg.reciveMsg();
                 }catch(Exception ex)
                 {
                     MessageBox.Show("连接不到指定服务器");
                     btnStartServer.Enabled = true;
-                    //msg.Close();
+                    msg.Close();
                     return;
                 }
                 btnSend.Enabled = true;

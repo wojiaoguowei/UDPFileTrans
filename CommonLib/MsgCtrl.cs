@@ -28,7 +28,6 @@ namespace CommonLib
                 if (remoteMsg == null) throw new Exception();
                 hostMsg = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 int port = Util.randomPort();
-                System.Console.WriteLine("Msg" + port);
                 hostMsg.Bind(new IPEndPoint(IPAddress.Parse(hostIP), port));
 
             }else if (flag == 0)
@@ -37,7 +36,7 @@ namespace CommonLib
                 this.hostPort = Port;
                 /*TODO 校验 IP地址是否有效，除了越界还有 本机不是该IP的情况*/
                 hostMsg = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                hostMsg.Bind(new IPEndPoint(IPAddress.Parse(hostIP), Util.randomPort()));
+                hostMsg.Bind(new IPEndPoint(IPAddress.Parse(hostIP),hostPort));
             }
             /*
             this.remoteIP = remoteIP;
@@ -64,7 +63,9 @@ namespace CommonLib
         }
         public void Close()
         {
+            
             hostMsg.Close();
+            hostMsg = null;
         }
     }
 }

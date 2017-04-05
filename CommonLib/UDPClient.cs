@@ -52,7 +52,6 @@ namespace CommonLib
             /*校验 IP地址是否有效，除了越界还有 本机不是该IP的情况*/
             remoteData = new IPEndPoint(IPAddress.Parse(remoteIP), remotePort);
             int port = Util.randomPort();
-            System.Console.WriteLine("Client"+port);
             initSocket(port);
         }
         public void initSocket(int port)
