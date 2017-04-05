@@ -25,8 +25,11 @@ namespace CommonLib
                 this.remotePort = Port;
                 /*TODO 校验 IP地址是否有效，除了越界还有 本机不是该IP的情况*/
                 remoteMsg = new IPEndPoint(IPAddress.Parse(remoteIP), remotePort);
+                if (remoteMsg == null) throw new Exception();
                 hostMsg = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                hostMsg.Bind(new IPEndPoint(IPAddress.Parse(hostIP), hostPort));
+                int port = Util.randomPort();
+                System.Console.WriteLine("Msg" + port);
+                hostMsg.Bind(new IPEndPoint(IPAddress.Parse(hostIP), port));
 
             }else if (flag == 0)
             {
@@ -34,7 +37,7 @@ namespace CommonLib
                 this.hostPort = Port;
                 /*TODO 校验 IP地址是否有效，除了越界还有 本机不是该IP的情况*/
                 hostMsg = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                hostMsg.Bind(new IPEndPoint(IPAddress.Parse(hostIP), hostPort));
+                hostMsg.Bind(new IPEndPoint(IPAddress.Parse(hostIP), Util.randomPort()));
             }
             /*
             this.remoteIP = remoteIP;
@@ -47,6 +50,7 @@ namespace CommonLib
         }
         public void sendMsg(String msg, int flag)
         {
+            if (remoteMsg == null) return;
             hostMsg.SendTo(Encoding.UTF8.GetBytes(flag + "*" + msg), remoteMsg);
         }
         public String[] reciveMsg()
@@ -57,6 +61,10 @@ namespace CommonLib
             int rev = hostMsg.ReceiveFrom(byteArray, ref temp);
             remoteMsg = (IPEndPoint)temp;
             return Encoding.UTF8.GetString(byteArray, 0, rev).Split(new char[] { '*' }, 2);
+        }
+        public void Close()
+        {
+            hostMsg.Close();
         }
     }
 }

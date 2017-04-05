@@ -26,6 +26,8 @@ namespace Client
 
             m_SyncContext = SynchronizationContext.Current;
             btnStopSend.Enabled = false;
+            btnSendMsg.Enabled = false;
+            btnSend.Enabled = false;
         }
         
         private FileSend fileSend = new FileSend();
@@ -40,8 +42,22 @@ namespace Client
             String portStr = tbIP.Text.Trim();
             if (Util.checkIP(ip,portStr))
             {
-                msg = new MsgCtrl(ip, Int32.Parse(portStr),1);
-                msg.sendMsg("客户端连接", Util.SYSMSG);
+                
+                try
+                {
+                    msg = new MsgCtrl(ip, Int32.Parse(portStr), 1);
+                    msg.sendMsg("客户端连接", Util.SYSCONN);
+                    String[] temp=msg.reciveMsg();
+                }catch(Exception ex)
+                {
+                    MessageBox.Show("连接不到指定服务器");
+                    btnStartServer.Enabled = true;
+                    //msg.Close();
+                    return;
+                }
+                btnSend.Enabled = true;
+                btnSendMsg.Enabled = true;
+
                 ThreadStart ts = new ThreadStart(listenMsg);
                 Util.newThread(ts);
             }
@@ -58,17 +74,17 @@ namespace Client
                 int p = Int32.Parse(msgArray[0]);
                 switch (p)
                 {
-                    case Util.SYSMSG:
+                    case Util.SYS:
                         m_SyncContext.Post(appendMsg, DateTime.Now + "\r\n系统消息：" + msgArray[1]+ "\r\n");
                         break;
-                    case Util.USERMSG:
+                    case Util.USER:
                         m_SyncContext.Post(appendMsg, DateTime.Now + "\r\n用户消息：" + msgArray[1]+ "\r\n");
                         break;
-                    case Util.PORTMSG:
+                    case Util.PORT:
                         UDPClient clientTemp = new UDPClient(msg.remoteIP, Int32.Parse(msgArray[1]),Util.randomPort()+10, appendMsgAsyc, changeProcessBarAsyc, changelblSentAsyc);
                         sendFile(clientTemp);
                         break;
-                    case Util.FILESTOPMSG:
+                    case Util.FILESTOP:
                         stopSend();
                         m_SyncContext.Post(toggleBtn, 0);
                         break;
@@ -87,7 +103,7 @@ namespace Client
                 fileName = fullPath.Substring(point,fullPath.Length-point);
 
                 /*文件信息 文件名*文件长度*/
-                msg.sendMsg(fileName + "*" + f.Length, Util.FILEINFOMSG);
+                msg.sendMsg(fileName + "*" + f.Length, Util.FILEINFO);
 
                 lblFileName.Text = fileName;
                 lblFileSize.Text = f.Length.ToString();
@@ -104,7 +120,7 @@ namespace Client
         private void btnStopSend_Click(object sender, EventArgs e)
         {
             stopSend();
-            msg.sendMsg("stopSend", Util.FILESTOPMSG);
+            msg.sendMsg("stopSend", Util.FILESTOP);
             toggleBtn(0);
         }
         private void stopSend()
@@ -119,7 +135,8 @@ namespace Client
             String msgStr = tbMsg.Text.Trim();
             if (!msgStr.Equals(""))
             {
-                msg.sendMsg(msgStr, Util.USERMSG);
+                msg.sendMsg(msgStr, Util.USER);
+                tbMsg.Text = "";
                 //tbMsgHistory.Text +=  DateTime.Now + "\r\n用户消息：" + msg+ "\r\n";
                 m_SyncContext.Post(appendMsg, DateTime.Now + "\r\n用户消息：" + msgStr + "\r\n");
             }
@@ -173,6 +190,7 @@ namespace Client
         private void btnExit_Click(object sender, EventArgs e)
         {
             Util.killAllThread();
+            this.Close();
         }
     }
 }

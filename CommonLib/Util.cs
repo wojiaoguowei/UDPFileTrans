@@ -9,14 +9,15 @@ namespace CommonLib
 {
     public static class Util
     {
-        public const int SYSMSG = 0;
-        public const int FILEINFOMSG = 1;
-        public const int FILESTOPMSG = 2;
-        public const int USERMSG = 3;
-        public const int PORTMSG = 4;
+        public const int SYS = 0;
+        public const int FILEINFO = 1;
+        public const int FILESTOP = 2;
+        public const int USER = 3;
+        public const int PORT = 4;
         public const int FILESENDOK = 5;
+        public const int SYSCONN = 6;
+        public const int SYSCONNOK = 7;
 
-        private static int port = 1030;
         private static List<Thread> threadList = new List<Thread>();
         public static Boolean checkIP(String ip, String port)
         {
@@ -34,6 +35,7 @@ namespace CommonLib
         {
             Thread t = new Thread(st);
             t.Start();
+            t.IsBackground = true;
             threadList.Add(t);
             return t;
         }
@@ -47,14 +49,14 @@ namespace CommonLib
             while (it.MoveNext())
             {
                 Thread t = it.Current;
-                if (t != null && t.IsAlive) t.Abort();
+                if (t != null) t.Abort();
             }
             threadList = null;
         }
         public static int randomPort()
         {
-            Random r = new Random(port);
-            port = r.Next(1030,65530);
+            Random r = new Random();
+            int port = r.Next(1030,65530);
             return port;
         }
 

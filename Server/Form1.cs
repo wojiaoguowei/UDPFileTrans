@@ -25,6 +25,7 @@ namespace Server
 
             m_SyncContext = SynchronizationContext.Current;
             btnStopTrans.Enabled = false;
+            btnSendMsg.Enabled = false;
         }
 
         private FileRev fileRev = new FileRev();
@@ -36,9 +37,18 @@ namespace Server
             String portStr = tbPort.Text.Trim();
             if (Util.checkIP(ip, portStr))
             {
-                msg = new MsgCtrl(ip,Int32.Parse(portStr),0);
+                try
+                {
+                    msg = new MsgCtrl(ip, Int32.Parse(portStr), 0);
+                }catch(Exception ex)
+                {
+                    MessageBox.Show("请输入有效IP");
+                    return;
+                }
                 ThreadStart st = new ThreadStart(listenMsg);
                 Util.newThread(st);
+
+                btnSendMsg.Enabled = true;
             }
             else
             {
@@ -54,16 +64,16 @@ namespace Server
                 int p = Int32.Parse(msgArray[0]);
                 switch (p)
                 {
-                    case Util.SYSMSG:
+                    case Util.SYS:
                         m_SyncContext.Post(appendMsg, DateTime.Now + "\r\n系统消息：" + msgArray[1]+ "\r\n");
                         break;
-                    case Util.FILEINFOMSG:
+                    case Util.FILEINFO:
                         setAndStartFileinfo(msgArray[1]);
                         break;
-                    case Util.USERMSG:
+                    case Util.USER:
                         m_SyncContext.Post(appendMsg, DateTime.Now + "\r\n用户消息：" + msgArray[1]+ "\r\n");
                         break;
-                    case Util.FILESTOPMSG:
+                    case Util.FILESTOP:
                         m_SyncContext.Post(appendMsg, DateTime.Now + "\r\n系统消息：文件传输终止"+ "\r\n");
                         m_SyncContext.Post(toggleBtnStopEnable, 0);
                         fileRev.stopSend();
@@ -71,6 +81,10 @@ namespace Server
                     case Util.FILESENDOK:
                         m_SyncContext.Post(toggleBtnStopEnable, 0);
                         m_SyncContext.Post(appendMsg, DateTime.Now + "\r\n系统消息：文件传输完成" + "\r\n");
+                        break;
+                    case Util.SYSCONN:
+                        m_SyncContext.Post(appendMsg, DateTime.Now + "\r\n系统消息：" + msgArray[1] + "\r\n");
+                        msg.sendMsg("服务器已连接",Util.SYSCONNOK);
                         break;
                 }
             }
@@ -82,7 +96,7 @@ namespace Server
             String[] temp = fileInfo.Split('*');
             int randomPort = Util.randomPort();
             UDPServer serverTemp = new UDPServer(msg.hostIP, randomPort);
-            msg.sendMsg(randomPort.ToString(),Util.PORTMSG);
+            msg.sendMsg(randomPort.ToString(),Util.PORT);
             Thread.Sleep(5);
             /*接收到的消息是文件名*文件长度，这里传参是文件名，文件长度*/
             fileRev.reciveFile(serverTemp,temp[0],long.Parse(temp[1]));
@@ -91,7 +105,7 @@ namespace Server
 
         private void btnStopTrans_Click(object sender, EventArgs e)
         {
-            msg.sendMsg("stopSend", Util.FILESTOPMSG);
+            msg.sendMsg("stopSend", Util.FILESTOP);
             fileRev.stopSend();
             m_SyncContext.Post(appendMsg, DateTime.Now + "\r\n系统消息：文件传输终止\r\n");
             btnStopTrans.Enabled = false;
@@ -102,7 +116,8 @@ namespace Server
             String msgStr = tbMsg.Text.Trim();
             if (!msgStr.Equals(""))
             {
-                msg.sendMsg(msgStr,Util.USERMSG);
+                tbMsg.Text = "";
+                msg.sendMsg(msgStr,Util.USER);
                 m_SyncContext.Post(appendMsg, DateTime.Now + "\r\n用户消息："+msgStr+ "\r\n");
             }
         }
@@ -122,7 +137,7 @@ namespace Server
 
         private void btnExit_Click(object sender, EventArgs e)
         {
-            Util.killAllThread();
+            this.Close();
         }
     }
 }

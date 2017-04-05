@@ -46,13 +46,14 @@ namespace CommonLib
         }
         public void reciveFile()
         {
-            System.Console.WriteLine(hostData.ToString());
             FileStream fs = new FileStream(filePath + fileName, FileMode.Append, FileAccess.Write);
+            
             CancellationTokenSource ct = new CancellationTokenSource();
             ct.Token.Register(() => {
                 canRev = false;
             });
-            ct.CancelAfter((int)fileSize / 1000>1000? (int)fileSize / 1000:1000);
+            ct.CancelAfter((int)fileSize / 300>1000? (int)fileSize / 300:1000);
+            
             long length = 0;
             while (length < fileSize)
             {
@@ -69,7 +70,7 @@ namespace CommonLib
             ct.Dispose();
             fs.Flush();
             fs.Close();
-            Thread.CurrentThread.Abort();
+            //Thread.CurrentThread.Abort();
             //reciveData(fs);
             /*
             fs.Flush();
