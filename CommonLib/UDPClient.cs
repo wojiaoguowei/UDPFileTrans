@@ -76,7 +76,10 @@ namespace CommonLib
             long length = 0;
 
             int delayOfView = 0;//用作委托界面更新的延迟
-            while (byteArray.Length == fs.Read(byteArray, 0, byteArray.Length))
+
+
+            int 个数 = fs.Read(byteArray, 0, byteArray.Length);
+            while (byteArray.Length ==/* fs.Read(byteArray, 0, byteArray.Length)*/ 个数)
             {
                 if (canSend)
                 {
@@ -90,13 +93,21 @@ namespace CommonLib
                         changeProcessBar((int)((double)length / (double)count * 100.0));
                         changlblSent((int)length);
                     }
-                    
+
+                    个数 = fs.Read(byteArray, 0, byteArray.Length);
+
                 }
                 else break;
             }
             if (canSend)
             {
-                sendData(byteArray);
+
+                //临时缓存，小于1024
+
+                byte[] byteArrayTmp = new byte[个数];
+                byteArrayTmp = byteArray.Skip(0).Take(个数).ToArray();
+
+                sendData(byteArrayTmp);
                 appendMsg();
                 changlblSent((int)count);
                 changeProcessBar(100);

@@ -46,7 +46,7 @@ namespace CommonLib
         }
         public void reciveFile()
         {
-            FileStream fs = new FileStream(filePath + fileName, FileMode.Append, FileAccess.Write);
+            FileStream fs = new FileStream(filePath + fileName, FileMode.Create, FileAccess.Write);
             
             CancellationTokenSource ct = new CancellationTokenSource();
             ct.Token.Register(() => {
@@ -88,6 +88,7 @@ namespace CommonLib
             if (hostData.Available != 0)
             {
                 int rev = hostData.ReceiveFrom(byteArray, ref temp);
+                string myStr = System.Text.Encoding.ASCII.GetString(byteArray);
                 fs.Write(byteArray, 0, rev);
                 return rev;
             }
